@@ -1,83 +1,39 @@
-## 配置服务器设置
-> Jenkins完成构建工作并把相关文件上传的服务器后,服务器还需要做相关配置来完成整个发布工作
-其大概步骤包括以下内容,备份原有资料-->对当前版本文件进行相关操作-->重启对应的应用,整个smp项目有发布了`Weblogic`,`Tomcat`,`JAR`三种形式,这里逐一说明.
-### 备份原有项目文件及操作当前文件
-如果是正式环境,最好是使用`shell`脚本备份成以日期模式的文件夹,防止意外发生,测试环境因频繁构建与测试,可以直接cp备份文件
-```shell
-cd /opt/weblogic/webapp/ea_domain/
-rm -rf servers/eaec
-cp -rf eaec/ servers/
-cd /opt/weblogic/webapp/ea_domain/eaec/
-/opt/weblogic/java/jdk1.8.0_144/bin/jar -xvf eaec-1.0-SNAPSHOT.war
-rm -rf eaec-1.0-SNAPSHOT.war
-cd ..
-cp servers/domain_bak/weblogic.xml eaec/WEB-INF/
-/etc/init.d/weblogic restart
-```
+## 新建及配置Item 
+### 新建Item
+点击Jenkins中的`新建Item`项,在新弹出的页面内输入一个任务名字,注意与前面你想的权限控制的正则匹配,在下面快速选择默认配置项选中`构建一个maven项目`,然后点击确定,进入配置项
 
-这段shell命令在在Jenkins插件的SSH远程服务器里的`Exec command`设置就是指构建完成后上传文件前执行相关shell命令,主要包括内容有删除原有备份,备份当前项目内容,解压war包到指定项目文件夹,删除对应war包,拷贝当前服务器一些特殊的配置文件,配合服务器中的脚本完成比较繁杂的任务,这里是重启Weblogic
 
-### 重启对应的应用
-一般来说,重启应用在Jenkins中比较难完全,因为首先要关闭正在运行的对应项目,最好是事先写一个shell脚本放在指定目录,用Jenkins调用相关脚本来完成这一操作.
+![](images/0305item.png),
+#### 如果你有相似项目,可以用快速复制方式来创建.
+### 配置
+#### `General`中选择构建时所用的JDK版本;
+#### `源码管理`选中你的源码管理方式,这里使用的是git,填写git地址与构建分支
 
-一个重启应用脚本的示例
-```
-#!/bin/sh
-#kill smp-server pid
-if [ $# -ne 2 ]
-then
-    echo "Usage: server.sh stop/start/restart APP_NAME"
-    exit 1
-fi
-APP_NAME=$2
-curBasePath=`dirname $0`
-if [ "stop" = "$1" ]
-then
-    pidlist=`ps -ef|grep $APP_NAME | grep -v "grep" | grep -v "server.sh " | awk '{print $2}' `
-    #echo "smp-server Id list :$pidlist"
-    if [ "$pidlist" = "" ] 
-    then
-        echo "no smp-server pid alive"
-    else
-        for pid in ${pidlist}
-        {
-            kill -9 $pid
-            echo "KILL $pid:"
-            echo "service stop success"
-        }
-    fi
-    sleep 2
-    `rm -rf $curBasePath/$APP_NAME/webapps/ROOT`
-elif [ "start" = "$1" ] 
-then 
-    nohup $curBasePath/$APP_NAME/startup.sh &> /dev/null
-elif [ "restart" = "$1" ]
-then
-    pidlist=`ps -ef|grep $APP_NAME | grep -v "grep" | grep -v "server.sh " | awk '{print $2}' `
-    #echo "smp-server Id list :$pidlist"
-    if [ "$pidlist" = "" ]
-    then
-        echo "no smp-server pid alive"
-    else
-        for pid in ${pidlist}
-        {
-            kill -9 $pid
-            echo "KILL $pid:"
-            echo "service stop success"
-        }
-    fi
-    sleep 2 
-    `rm -rf $curBasePath/$APP_NAME/webapps/ROOT`
-    nohup $curBasePath/$APP_NAME/startup.sh &> /dev/null
-fi
-echo "done."
-exit 0
+
+![](images/0306git.png)
+#### `构建环境`中配置你需要远程发部的服务器信息
+
+
+![](images/0307ssh.png)
+
+> 注意:这里的行程路径与开始配SSH全局设置的远程是相互影响的,全局为工作空间,这里的路径是指工作空间下的相对路径,这点包括Jenkins自身都是类似的机制,需要拷贝文件的路径也是类似,在Jenkins的工作空间的基础上的相对路径.
+
+#### `Biuld`配置如下图,maven命令
 
 ```
-
-其对应的`startup.sh`,这里主要是用来启动三个jar包的相关应用
+clean install -Dmaven.test.skip -Ptest
 ```
-cd /opt/product/smp-service/smp-order
-exec nohup java -jar smp-order-0.0.1-SNAPSHOT.jar &
+-D后为跳出测试的周期,-P后为不同环境的环境参数,注意两者之间都没有空格
 
-```
+![](images/0308biuld.png)
+
+> 注意在特殊项目时,比如多模块的`Maven`项目,子模块需要构建在父工程的目录下,需要使用`自定义的工作空间`,这里也是指相对路径,只写父项目的路径下的工程名就好,但必须与`pom.xml`文件的名字一样,不然容易报错.
+
+#### 上下游项目的配置
+项目之间有依赖的,必选是上游所依赖的项目构建完成时才能构建当前项目,这时需要配置上下游项目的依赖
+在`构建触发器`内选中`Build after other projects are built`,选择填写对应的上游项目,这样构建上游的项目后自动构建下游项目
+
+![](images/0309watch.png)
+整个项目的有比较完整的上下游关系时,只需要构建最上游的项目,则会自动构其下游的项目
+
+![](images/0310.png)

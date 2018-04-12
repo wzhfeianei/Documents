@@ -1,4 +1,4 @@
-##引入core包
+﻿##引入core包
 
 ```
 SLF4J: Class path contains multiple SLF4J bindings.
@@ -58,7 +58,9 @@ jMeter.start(new String[]{"-n","-tD:/workspace/jmdemo/tpxy4.jmx"});
 
 ##包的加载 
 
+
 ```
 CannotResolveClassException: org.apache.jmeter.protocol.http.sampler.HTTPSamplerProxy
 ```
+加载对应JAR包
 

@@ -16,13 +16,13 @@ Jenkins的安装主要方法有两种直接运行JAR和放到Web容器中,其实
 
 进入`系统设置-->管理插件页面`,分别搜索和安装以下插件
 
-插件名 | 作用描述
----------|----------
- Git | 管理Git |
- Role-based Authorization Strategy | 用户及项目权限管理 |
- Performance | 解析和展示Jmeter性能结果 |
- HTML Publisher plugin | 转移保存和展示HTML页面
- Email Extension | 发送构建构建邮件
+| 插件名                            | 作用描述                 |
+| --------------------------------- | ------------------------ |
+| Git                               | 管理Git                  |
+| Role-based Authorization Strategy | 用户及项目权限管理       |
+| Performance                       | 解析和展示Jmeter性能结果 |
+| HTML Publisher plugin             | 转移保存和展示HTML页面   |
+| Email Extension                   | 发送构建构建邮件         |
 把以上插件都安装好之后,再配置相关选项。如果在安装插件的时候因为长城的问题看不到插件列表，进入插件页面的`高级`选项,配置访问代理或把升级站点换成`http://mirrors.shu.edu.cn/jenkins//updates/update-center.json`就可以正常访问了。
 
 ## 权限控制
@@ -69,6 +69,84 @@ Jenkins的安装主要方法有两种直接运行JAR和放到Web容器中,其实
   邮件可以使用模板,现在都是看脸的世界,发出去的邮件也不能太简陋,可以把邮件的模版稍微设计一下,复制到如上图的地方。可以用一些Jenkins的环境变量代替邮件的内容，这个收到的邮件的人就可以直接在在邮件里打开报告地址。
   这是之前用的一个简单模板，发出去的是这个样子。
   ![03-持续集成测试的Jenkins配置-2018827123736](http://owo8mviga.bkt.clouddn.com/03-持续集成测试的Jenkins配置-2018827123736.png)
+
+  有同学要模版,这个是Jenkins可以用的构建模版,另一个需要后台服务支持,先不发了,到时候和后台应用一起发
+
+  ```html
+
+  <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>${ENV, var="JOB_NAME"}-第${BUILD_NUMBER}次构建结果</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+</head>
+
+<body style="margin: 0; padding: 0;">
+	<table border="0" cellpadding="0" cellspacing="0" width="100%">
+		<tr>
+			<td style="padding: 10px 0 30px 0;">
+				<table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="border: 1px solid #cccccc; border-collapse: collapse;">
+					<tr>
+						<td align="center" bgcolor="#e5ffff" style="padding: 40px 0 30px 0; color: #153643; font-size: 28px; font-weight: bold; font-family:Microsoft YaHei,Arial, sans-serif;">
+							<!-- <img src="images/h1.gif" alt="Creating Email Magic" width="300" height="50" style="display: block;" /> -->
+							<b>自动化测试构建结果</b>
+						</td>
+					</tr>
+					<tr>
+						<td bgcolor="#ffffff" style="padding: 40px 30px 40px 30px;">
+							<table border="0" cellpadding="0" cellspacing="0" width="100%">
+								<tr>
+									<td style="padding: 20px 0 30px 0; color: #153643; font-family:Microsoft YaHei, Arial, sans-serif; font-size: 24px;">
+										<b>项目:${PROJECT_NAME}</b>
+									</td>
+								</tr>
+								<tr>
+									<td style="padding: 20px 0 5px 0; color: #153643; font-family:Microsoft YaHei, Arial, sans-serif; font-size: 16px; line-height: 20px;">
+										<b>构建结果</b> - ${BUILD_STATUS}
+									</td>
+								</tr>
+								<tr>
+									<td style="padding: 20px 0 5px 0; color: #153643; font-family:Microsoft YaHei, Arial, sans-serif; font-size: 16px; line-height: 20px;">
+										<b>构建编号</b> - 第${BUILD_NUMBER}次构建
+									</td>
+								</tr>
+								<tr>
+									<td style="padding: 20px 0 5px 0; color: #153643; font-family:Microsoft YaHei, Arial, sans-serif; font-size: 16px; line-height: 20px;">
+										<b>触发原因</b> - ${CAUSE}
+									</td>
+								</tr>
+								<tr>
+									<td style="padding: 20px 0 5px 0; color: #153643; font-family:Microsoft YaHei, Arial, sans-serif; font-size: 16px; line-height: 20px;">
+										<b>构建URL</b> - <a href="${PROJECT_URL}">项目构建URL</a>
+									</td>
+								</tr>
+								<tr>
+									<td style="padding: 20px 0 5px 0; color: #153643; font-family:Microsoft YaHei, Arial, sans-serif; font-size: 16px; line-height: 20px;">
+										<b>报告明细</b> - <a href="${PROJECT_URL}/PerformanceReport/"><b>明细报告URL</b></a>
+									</td>
+								</tr>
+								<tr>
+									<td style="padding: 20px 0 5px 0; color: #153643; font-family:Microsoft YaHei, Arial, sans-serif; font-size: 16px; line-height: 20px;">
+										本邮件为自动化测试构建时的通知，请勿回复。
+									</td>
+								</tr>
+							</table>
+						</td>
+					</tr>
+					<tr>
+						邮件标签
+					</tr>
+				</table>
+			</td>
+		</tr>
+	</table>
+</body>
+
+</html>
+
+  ```
 
 ## 框架总结
 
